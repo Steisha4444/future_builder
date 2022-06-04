@@ -11,31 +11,41 @@ class UsersPage extends StatefulWidget {
 }
 
 class _UsersPageState extends State<UsersPage> {
-  List<User> users = [];
-  bool isLoading = true;
 
-  Future<void> fetchData() async {
-    isLoading = true;
-    setState(() {});
-    users = await UsersApi.getUsers();
-    isLoading = false;
-    setState(() {});
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    fetchData();
-  }
+  Future<List<User>> fetchData() => UsersApi.getUsers();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: isLoading ? Center(child: CircularProgressIndicator(color: Colors.deepPurple,))
-      : ListView(
-        children:
-            List.generate(users.length, (index) => UserCard(users[index])),
+      // body: isLoading ? Center(child: CircularProgressIndicator(color: Colors.deepPurple,))
+      // : ListView(
+      //   children:
+      //       List.generate(users.length, (index) => UserCard(users[index])),
+      // ),
+      body: FutureBuilder(
+        future: fetchData(),
+        builder: (context, snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.waiting:
+              return const Center(
+                child: CircularProgressIndicator(
+                  
+                  color: Colors.deepPurple,
+                ),
+              );
+            case ConnectionState.done:
+            final users = snapshot.data as List<User>;
+              return ListView(
+                children: List.generate(
+                  users.length,
+                  (index) => UserCard(users[index]),
+                ),
+              );
+            default:
+              return Container();
+          }
+        },
       ),
     );
   }
